@@ -10,6 +10,9 @@ End-to-end tests for [Automation Exercise](https://automationexercise.com/) usin
 - Signup creates a new account with a fresh Gmail plus-address
 - Invalid login shows an error
 - Valid login works after logout
+- Product search opens matching results and product details
+- Cart flow adds a product and verifies the cart row
+- Contact form submits successfully
 
 This project does not delete accounts after tests.
 
@@ -52,14 +55,17 @@ Failure reporting was verified with an intentional temporary failure.
 
 ```text
 .
-├── scripts/
-│   └── run-tests.js
-├── tests/
-│   ├── auth.test.js
-│   ├── home.test.js
-│   ├── login.test.js
-│   ├── signup.test.js
-│   └── support/
-├── package.json
-└── run-tests.cmd
+|-- scripts/
+|   `-- run-tests.js
+|-- tests/
+|   |-- auth.test.js
+|   |-- cart.test.js
+|   |-- contact.test.js
+|   |-- home.test.js
+|   |-- login.test.js
+|   |-- products.test.js
+|   |-- signup.test.js
+|   `-- support/
+|-- package.json
+`-- run-tests.cmd
 ```
