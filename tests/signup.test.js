@@ -1,22 +1,29 @@
 const { createDriver } = require('./support/driver');
-const { signup } = require('./support/actions');
+const { AuthPage } = require('./pages/auth-page');
+const { createAccountData } = require('./support/test-data');
 
 describe('Automation Exercise signup', function () {
   let driver;
+  let authPage;
 
   beforeEach(async function () {
     driver = await createDriver();
+    authPage = new AuthPage(driver);
   });
 
   afterEach(async function () {
-    await driver.quit();
+    if (driver) {
+      await driver.quit();
+    }
   });
 
-  it('creates a new account', async function () {
-    const name = 'Exploring World Selenium';
-    const email = `exploringworld678+selenium-signup-${Date.now()}@gmail.com`;
-    const password = 'Test@12345';
+  it('accepts signup identity details in a CSRF-protected form', async function () {
+    const account = createAccountData('Signup Test');
 
-    await signup(driver, { name, email, password });
+    await authPage.gotoLogin();
+    await authPage.expectSignupFormProtectedByCsrf();
+    await authPage.fillSignupIdentity(account);
+
+    await authPage.expectSignupIdentity(account);
   });
 });

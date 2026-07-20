@@ -1,41 +1,54 @@
-const assert = require('node:assert/strict');
-const { By } = require('selenium-webdriver');
 const { createDriver } = require('./support/driver');
-const { expectText, expectUrlContains, open, visible } = require('./support/actions');
+const { CartPage } = require('./pages/cart-page');
+const { ProductsPage } = require('./pages/products-page');
 
 describe('Automation Exercise cart', function () {
   let driver;
+  let cartPage;
+  let productsPage;
 
   beforeEach(async function () {
     driver = await createDriver();
+    cartPage = new CartPage(driver);
+    productsPage = new ProductsPage(driver);
   });
 
   afterEach(async function () {
-    await driver.quit();
+    if (driver) {
+      await driver.quit();
+    }
   });
 
   it('adds the first product to the cart and verifies the cart row', async function () {
-    await open(driver, '/products');
-    await expectText(driver, 'All Products');
+    await productsPage.goto();
 
-    const firstProduct = await visible(driver, By.css('.product-image-wrapper'));
-    const productName = (await firstProduct.findElement(By.css('.productinfo p')).getText()).trim();
-    const addToCart = await firstProduct.findElement(By.css('.overlay-content a.add-to-cart'));
+    const productName = await productsPage.addFirstProductToCart();
+    await productsPage.viewCartFromModal();
 
-    await driver.executeScript('arguments[0].scrollIntoView({ block: "center" });', firstProduct);
-    await driver.executeScript('arguments[0].click();', addToCart);
+    await cartPage.expectCartOpen();
+    await cartPage.expectProductRow(productName, 1);
+  });
 
-    await expectText(driver, 'Added!');
-    const viewCart = await visible(driver, By.xpath('//a[contains(normalize-space(.), "View Cart")]'));
-    await viewCart.click();
+  it('adds a product with custom quantity from the detail page', async function () {
+    await productsPage.goto();
+    await productsPage.openFirstProductDetail();
+    await productsPage.expectProductDetailVisible();
 
-    await expectUrlContains(driver, '/view_cart');
-    const cartInfo = await visible(driver, By.id('cart_info'));
-    const cartText = await cartInfo.getText();
-    assert.match(cartText, new RegExp(productName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-    assert.match(cartText, /Rs\./);
+    const productName = await productsPage.addDetailProductToCart(3);
+    await productsPage.viewCartFromModal();
 
-    const quantity = await visible(driver, By.css('.cart_quantity'));
-    assert.equal((await quantity.getText()).trim(), '1');
+    await cartPage.expectCartOpen();
+    await cartPage.expectProductRow(productName, 3);
+  });
+
+  it('removes a product from the cart', async function () {
+    await productsPage.goto();
+
+    await productsPage.addFirstProductToCart();
+    await productsPage.viewCartFromModal();
+    await cartPage.expectCartOpen();
+    await cartPage.removeFirstProduct();
+
+    await cartPage.expectEmptyCart();
   });
 });

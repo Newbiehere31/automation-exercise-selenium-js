@@ -1,25 +1,24 @@
-const { By } = require('selenium-webdriver');
 const { createDriver } = require('./support/driver');
-const { expectText, open, visible } = require('./support/actions');
+const { AuthPage } = require('./pages/auth-page');
 
 describe('Automation Exercise authentication forms', function () {
   let driver;
+  let authPage;
 
   beforeEach(async function () {
     driver = await createDriver();
+    authPage = new AuthPage(driver);
   });
 
   afterEach(async function () {
-    await driver.quit();
+    if (driver) {
+      await driver.quit();
+    }
   });
 
   it('shows login and signup forms', async function () {
-    await open(driver, '/login');
+    await authPage.gotoLogin();
 
-    await expectText(driver, 'Login to your account');
-    await visible(driver, By.css('[data-qa="login-email"]'));
-    await visible(driver, By.css('[data-qa="login-password"]'));
-    await expectText(driver, 'New User Signup!');
-    await visible(driver, By.css('[data-qa="signup-name"]'));
+    await authPage.expectFormsVisible();
   });
 });
